@@ -1,0 +1,2 @@
+./vina --lig_list ligand_list --receptor protein.pdbqt --size_x 10 --size_y 10 --size_z 10 --center_x 0 --center_y 0 --center_z 0
+

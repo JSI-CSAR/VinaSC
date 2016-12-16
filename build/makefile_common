@@ -1,0 +1,76 @@
+LIBOBJ = vina_main.o cache.o coords.o current_weights.o everything.o grid.o szv_grid.o manifold.o model.o monte_carlo.o mutate.o my_pid.o naive_non_cache.o non_cache.o parallel_mc.o parse_pdbqt.o pdb.o quasi_newton.o quaternion.o random.o ssd.o terms.o weighted_terms.o
+MAINOBJ = main.o
+SPLITOBJ = split.o
+
+MICLIBOBJ=$(LIBOBJ:%.o=%.mic.o)
+MICMAINOBJ=$(MAINOBJ:%.o=%.mic.o)
+
+INCFLAGS = -I $(BOOST_INCLUDE)
+MICINCFLAGS = -I $(MIC_BOOST_INCLUDE) 
+
+# -pedantic fails on Mac with Boost 1.41 (syntax problems in their headers)
+#CC = ${GPP} ${C_PLATFORM} -ansi -pedantic -Wno-long-long ${C_OPTIONS} $(INCFLAGS)
+CC = ${GPP} 
+MICC = ${MICGPP} 
+
+CFLAGS = ${C_PLATFORM} -ansi -Wno-long-long ${C_OPTIONS} $(INCFLAGS) 
+MIC_CFLAGS= -mmic $(C_PLATFORM) -ansi -Wno-long-long ${C_OPTIONS} $(MICINCFLAGS) 
+
+#LDFLAGS = -L$(BASE)/lib -L.
+#LDFLAGS = -L$(BASE)/lib -L. -L/usr/lib64/ 
+LDFLAGS += -L$(BASE)/lib64 -tbb -L. -L/root/xsun23/workspace/autodock_proj/boost/cpu/stage/lib -lcoi_host -Wl,--enable-new-dtags
+#MIC_LDFLAGS += -L$(BASE)/lib64 -tbb -L. -L/opt/mpss/3.4.1/sysroots/k1om-mpss-linux/usr/lib64/ -L/home/sxz/boost/mic/lib64 -lcoi_device -rdynamic -Wl,--enable-new-dtags
+MIC_LDFLAGS += -L$(BASE)/lib64 -tbb -L.  -L/home/sxz/boost/mic/lib64 -lcoi_device -rdynamic -Wl,--enable-new-dtags
+
+LIBS = -lboost_system${BOOST_LIB_VERSION} -lboost_thread${BOOST_LIB_VERSION} -lboost_serialization${BOOST_LIB_VERSION} -lboost_filesystem${BOOST_LIB_VERSION} -lboost_program_options${BOOST_LIB_VERSION}#-l pthread
+#LIBS =  -lboost_thread${BOOST_LIB_VERSION} -lboost_serialization${BOOST_LIB_VERSION} -lboost_filesystem${BOOST_LIB_VERSION} -lboost_program_options${BOOST_LIB_VERSION}#-l pthread
+MICLIBS = -lboost_system${BOOST_LIB_VERSION} -lboost_thread${BOOST_LIB_VERSION} -lboost_filesystem${BOOST_LIB_VERSION} -lboost_program_options${BOOST_LIB_VERSION}
+
+.SUFFIXES: .cpp .o
+
+%.o : ../../../src/lib/%.cpp 
+	$(CC) $(CFLAGS) -o $@ -c $< 
+
+%.o : ../../../src/design/%.cpp 
+	$(CC) $(CFLAGS) -I ../../../src/lib -o $@ -c $< 
+	
+%.o : ../../../src/main/%.cpp 
+	$(CC) $(CFLAGS) -I ../../../src/lib -o $@ -c $< 
+
+%.o : ../../../src/split/%.cpp 
+	$(CC) $(CFLAGS) -I ../../../src/lib -o $@ -c $< 
+
+%.mic.o : ../../../src/lib/%.cpp 
+	$(MICC) $(MIC_CFLAGS)  -o $@ -c $< 
+
+%.mic.o : ../../../src/design/%.cpp 
+	$(MICC) $(MIC_CFLAGS) -I ../../../src/lib -o $@ -c $< 
+	
+%.mic.o : ../../../src/main/%.cpp 
+	$(MICC) $(MIC_CFLAGS) -I ../../../src/lib -o $@ -c $< 
+
+
+all: vina vina_split vina.mic
+
+include dependencies
+
+vina: $(MAINOBJ) $(LIBOBJ)
+	$(CC) $(LDFLAGS) $(LIBS) $^ -o $@  
+
+
+vina.mic: $(MICMAINOBJ) $(MICLIBOBJ)
+	$(MICC) $(MIC_CFLAGS) $(MIC_LDFLAGS) $(MICLIBS) $^ -o $@  
+
+vina_split: $(SPLITOBJ)
+	$(MICC) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+clean:
+	rm -f *.o
+
+depend:
+	ln -sf `${GPP} -print-file-name=libstdc++.a`
+	rm -f dependencies_tmp dependencies_tmp.bak
+	touch dependencies_tmp
+	makedepend -f dependencies_tmp -Y -I ../../../src/lib ../../../src/lib/*.cpp ../../../src/tests/*.cpp ../../../src/design/*.cpp ../../../src/main/*.cpp ../../../src/split/*.cpp  ../../../src/tune/*.cpp
+	sed -e "s/^\.\.\/\.\.\/\.\.\/src\/[a-z]*\//.\//" dependencies_tmp > dependencies
+	rm -f dependencies_tmp dependencies_tmp.bak

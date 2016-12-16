@@ -4,3 +4,7 @@
 *.*project
 *ptp-sync-folder
 *.o
+*100_lig
+*rst
+*PDBBind
+*pdbqt*
