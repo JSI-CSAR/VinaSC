@@ -15,3 +15,22 @@ Main contributions include:
 
 
 ## Instructions on Compilation and Execution
+1. Compilation
+
+	***Prerequest:*** 
+	- Intel COI
+	- Intel ICC
+	- Intel MPI
+	- Boost Library (CPU version & MIC version)
+	
+	First, modify the Makefile under build/linux/release/, point BOOST\_INCLUDE to the location of CPU version of Boost Library, and MIC\_BOOST\_INCLUDE to the MIC version. Specify the correct version in BOOST_VERSION.
+	
+	Please run the compilation script (compile.sh) on the root directory, executable vina is copied to test/
+	
+2. Execution
+	
+	Example input including ligand file, protein file and configuration file is placed under input/
+	
+	More configuration options can be found in Autodock Vina website: http://vina.scripps.edu/index.html
+	
+	Example execution scripts are provided in test/. In general, if you want to execute Vina in single machine, run "./vina --config CONFIGURE_FILE --log LOG_FILE". To run it in multiple nodes, try "mpirun -n NUMBER_OF_NODES -machinefile MACHINE_FILE ./vina --config CONF_FILE --log LOG_FILE"
