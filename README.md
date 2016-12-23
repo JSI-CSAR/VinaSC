@@ -2,6 +2,11 @@
 @Author: Lang Yu  
 Email: langyu at uchicago dot edu
 
+**_Note_**:
+
+If you use this program in your research, please cite our paper at BIBM'16:
+
+Lang Yu, Zhongzhi Luan, Xiangzheng Sun, Zhe Wang, Hailong Yang, **"VinaSC: Scalable Autodock Vina with Fine-grained Scheduling on Heterogeneous Platform"**, the IEEE International Conference on Bioinformatics and Biomedicine (BIBM), Shenzhen, China, December, 2016.
 ## What is VinaSC
 VinaSC is a modified version of Autodock Vina, with the ability to scalable docking multiple ligand-receptor pairs onto multiple machines. In addition, VinaSC supports both CPU and MIC platforms and implements an infrastructure to collaborate them, which exploits heterogeneous computing resources.
 
